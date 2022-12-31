@@ -10,6 +10,7 @@ package ltd.newbee.mall.controller.admin;
 
 import ltd.newbee.mall.common.Constants;
 import ltd.newbee.mall.common.NewBeeMallCategoryLevelEnum;
+import ltd.newbee.mall.common.NewBeeMallException;
 import ltd.newbee.mall.common.ServiceResultEnum;
 import ltd.newbee.mall.entity.GoodsCategory;
 import ltd.newbee.mall.entity.NewBeeMallGoods;
@@ -20,6 +21,7 @@ import ltd.newbee.mall.util.Result;
 import ltd.newbee.mall.util.ResultGenerator;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,16 +71,14 @@ public class NewBeeMallGoodsController {
                 return "admin/newbee_mall_goods_edit";
             }
         }
-        return "error/error_5xx";
+        NewBeeMallException.fail("分类数据不完善");
+        return null;
     }
 
     @GetMapping("/goods/edit/{goodsId}")
     public String edit(HttpServletRequest request, @PathVariable("goodsId") Long goodsId) {
         request.setAttribute("path", "edit");
         NewBeeMallGoods newBeeMallGoods = newBeeMallGoodsService.getNewBeeMallGoodsById(goodsId);
-        if (newBeeMallGoods == null) {
-            return "error/error_400";
-        }
         if (newBeeMallGoods.getGoodsCategoryId() > 0) {
             if (newBeeMallGoods.getGoodsCategoryId() != null || newBeeMallGoods.getGoodsCategoryId() > 0) {
                 //有分类字段则查询相关分类数据返回给前端以供分类的三级联动显示
@@ -135,7 +135,7 @@ public class NewBeeMallGoodsController {
     @RequestMapping(value = "/goods/list", method = RequestMethod.GET)
     @ResponseBody
     public Result list(@RequestParam Map<String, Object> params) {
-        if (StringUtils.isEmpty(params.get("page")) || StringUtils.isEmpty(params.get("limit"))) {
+        if (ObjectUtils.isEmpty(params.get("page")) || ObjectUtils.isEmpty(params.get("limit"))) {
             return ResultGenerator.genFailResult("参数异常！");
         }
         PageQueryUtil pageUtil = new PageQueryUtil(params);
@@ -148,16 +148,16 @@ public class NewBeeMallGoodsController {
     @RequestMapping(value = "/goods/save", method = RequestMethod.POST)
     @ResponseBody
     public Result save(@RequestBody NewBeeMallGoods newBeeMallGoods) {
-        if (StringUtils.isEmpty(newBeeMallGoods.getGoodsName())
-                || StringUtils.isEmpty(newBeeMallGoods.getGoodsIntro())
-                || StringUtils.isEmpty(newBeeMallGoods.getTag())
+        if (!StringUtils.hasText(newBeeMallGoods.getGoodsName())
+                || !StringUtils.hasText(newBeeMallGoods.getGoodsIntro())
+                || !StringUtils.hasText(newBeeMallGoods.getTag())
                 || Objects.isNull(newBeeMallGoods.getOriginalPrice())
                 || Objects.isNull(newBeeMallGoods.getGoodsCategoryId())
                 || Objects.isNull(newBeeMallGoods.getSellingPrice())
                 || Objects.isNull(newBeeMallGoods.getStockNum())
                 || Objects.isNull(newBeeMallGoods.getGoodsSellStatus())
-                || StringUtils.isEmpty(newBeeMallGoods.getGoodsCoverImg())
-                || StringUtils.isEmpty(newBeeMallGoods.getGoodsDetailContent())) {
+                || !StringUtils.hasText(newBeeMallGoods.getGoodsCoverImg())
+                || !StringUtils.hasText(newBeeMallGoods.getGoodsDetailContent())) {
             return ResultGenerator.genFailResult("参数异常！");
         }
         String result = newBeeMallGoodsService.saveNewBeeMallGoods(newBeeMallGoods);
@@ -176,16 +176,16 @@ public class NewBeeMallGoodsController {
     @ResponseBody
     public Result update(@RequestBody NewBeeMallGoods newBeeMallGoods) {
         if (Objects.isNull(newBeeMallGoods.getGoodsId())
-                || StringUtils.isEmpty(newBeeMallGoods.getGoodsName())
-                || StringUtils.isEmpty(newBeeMallGoods.getGoodsIntro())
-                || StringUtils.isEmpty(newBeeMallGoods.getTag())
+                || !StringUtils.hasText(newBeeMallGoods.getGoodsName())
+                || !StringUtils.hasText(newBeeMallGoods.getGoodsIntro())
+                || !StringUtils.hasText(newBeeMallGoods.getTag())
                 || Objects.isNull(newBeeMallGoods.getOriginalPrice())
                 || Objects.isNull(newBeeMallGoods.getSellingPrice())
                 || Objects.isNull(newBeeMallGoods.getGoodsCategoryId())
                 || Objects.isNull(newBeeMallGoods.getStockNum())
                 || Objects.isNull(newBeeMallGoods.getGoodsSellStatus())
-                || StringUtils.isEmpty(newBeeMallGoods.getGoodsCoverImg())
-                || StringUtils.isEmpty(newBeeMallGoods.getGoodsDetailContent())) {
+                || !StringUtils.hasText(newBeeMallGoods.getGoodsCoverImg())
+                || !StringUtils.hasText(newBeeMallGoods.getGoodsDetailContent())) {
             return ResultGenerator.genFailResult("参数异常！");
         }
         String result = newBeeMallGoodsService.updateNewBeeMallGoods(newBeeMallGoods);
@@ -203,9 +203,6 @@ public class NewBeeMallGoodsController {
     @ResponseBody
     public Result info(@PathVariable("id") Long id) {
         NewBeeMallGoods goods = newBeeMallGoodsService.getNewBeeMallGoodsById(id);
-        if (goods == null) {
-            return ResultGenerator.genFailResult(ServiceResultEnum.DATA_NOT_EXIST.getResult());
-        }
         return ResultGenerator.genSuccessResult(goods);
     }
 
